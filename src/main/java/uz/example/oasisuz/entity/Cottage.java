@@ -1,10 +1,7 @@
 package uz.example.oasisuz.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import uz.example.oasisuz.entity.enums.Equipments;
 
 import java.time.LocalDate;
@@ -15,6 +12,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Cottage {
 
     @Id
@@ -48,4 +46,7 @@ public class Cottage {
 
     @OneToOne
     private Attachment mainAttachment;
+
+    @ManyToOne()
+    private Users users;
 }
