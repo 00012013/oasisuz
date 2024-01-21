@@ -3,9 +3,11 @@ package uz.example.oasisuz.service;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import uz.example.oasisuz.dto.BannerDTO;
 import uz.example.oasisuz.dto.CottageDTO;
 import uz.example.oasisuz.entity.Cottage;
 import uz.example.oasisuz.entity.Users;
+import uz.example.oasisuz.entity.enums.Equipments;
 import uz.example.oasisuz.repository.CottageRepository;
 
 import java.util.List;
@@ -16,14 +18,20 @@ public class CottageService {
     private final CottageRepository cottageRepository;
     private final ModelMapper modelMapper;
     private final UsersService usersService;
-    public List<CottageDTO> getAllCottages(){
+
+    public List<CottageDTO> getAllCottages() {
         List<Cottage> cottageList = cottageRepository.findAll();
-        return cottageList.stream().map(cottage ->  modelMapper.map(cottage, CottageDTO.class)).toList();
+        return cottageList.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).toList();
     }
 
-    public CottageDTO addCottage(CottageDTO cottageDTO, Integer userId){
+    public List<BannerDTO> getBannerCottages() {
+        List<Cottage> fistThree = cottageRepository.getFistThree();
+        return fistThree.stream().map(cottage -> modelMapper.map(cottage, BannerDTO.class)).toList();
+    }
+
+    public CottageDTO addCottage(CottageDTO cottageDTO, Integer userId) {
         Users user = usersService.getUser(userId);
-        if(user == null){
+        if (user == null) {
             // to do
         }
 
@@ -32,8 +40,8 @@ public class CottageService {
         cottage.setDescription(cottageDTO.getDescription());
         cottage.setLatitude(cottageDTO.getLatitude());
         cottage.setLongitude(cottageDTO.getLongitude());
-        cottage.setBookedDates(cottageDTO.getBookedDates());
-        cottage.setEquipmentsList(cottageDTO.getEquipmentsEnumList());
+//        cottage.setBookedDates(cottageDTO.getBookedDates());
+        cottage.setEquipmentsList(getEquipmentsEnumList(cottageDTO.getEquipmentsList()));
         cottage.setGuestCount(cottageDTO.getGuestCount());
         cottage.setTotalRoomCount(cottageDTO.getTotalRoomCount());
         cottage.setWeekDaysPrice(cottageDTO.getWeekDaysPrice());
@@ -42,5 +50,19 @@ public class CottageService {
 
         Cottage save = cottageRepository.save(cottage);
         return modelMapper.map(save, CottageDTO.class);
+    }
+
+    private List<Equipments> getEquipmentsEnumList(List<String> equipmentsList) {
+        return equipmentsList.stream()
+                .map(Equipments::valueOf)
+                .toList();
+    }
+
+    public Cottage getCottage(Integer cottageId) {
+        return cottageRepository.findById(cottageId).orElse(null);
+    }
+
+    public void saveMainAttachmentId(Cottage cottage) {
+        cottageRepository.save(cottage);
     }
 }

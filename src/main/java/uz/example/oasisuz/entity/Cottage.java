@@ -41,7 +41,7 @@ public class Cottage {
     @ElementCollection
     private List<LocalDate> bookedDates;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "cottage", fetch = FetchType.LAZY)
     private List<Attachment> attachmentsList;
 
     @OneToOne

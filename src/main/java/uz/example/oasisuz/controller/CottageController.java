@@ -1,7 +1,10 @@
 package uz.example.oasisuz.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.Banner;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uz.example.oasisuz.dto.BannerDTO;
 import uz.example.oasisuz.dto.CottageDTO;
 import uz.example.oasisuz.service.CottageService;
 
@@ -16,7 +19,12 @@ public class CottageController {
 
     @GetMapping("get-all")
     public List<CottageDTO> getAllCottages() {
-        return cottageService.getAllCottages();
+        return  cottageService.getAllCottages();
+    }
+
+    @GetMapping("get-banner")
+    public ResponseEntity<List<BannerDTO>> getBannerCottages() {
+        return  ResponseEntity.ok(cottageService.getBannerCottages());
     }
 
     @PostMapping("add/{userId}")

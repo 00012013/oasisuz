@@ -36,9 +36,4 @@ public class CottageDTO {
 
     private AttachmentDTO mainAttachment;
 
-    public List<Equipments> getEquipmentsEnumList() {
-        return equipmentsList.stream()
-                .map(Equipments::valueOf)
-                .toList();
-    }
 }

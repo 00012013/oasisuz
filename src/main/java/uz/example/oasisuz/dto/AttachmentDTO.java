@@ -7,8 +7,4 @@ public class AttachmentDTO {
     private Integer id;
 
     private String fileOriginalName;
-
-    private String contentType;
-
-    private byte[] mainContent;
 }

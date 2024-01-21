@@ -1,4 +1,5 @@
 package uz.example.oasisuz.entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,5 +21,9 @@ public class Attachment {
     private byte[] mainContent;
 
     private String name;
+
+    @ManyToOne
+    @JsonIgnore
+    private Cottage cottage;
 
 }
