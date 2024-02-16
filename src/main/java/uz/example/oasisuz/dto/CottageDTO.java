@@ -1,7 +1,7 @@
 package uz.example.oasisuz.dto;
 
 import lombok.Data;
-import uz.example.oasisuz.entity.enums.Equipments;
+
 
 
 import java.time.LocalDate;
@@ -28,7 +28,7 @@ public class CottageDTO {
 
     private Integer totalRoomCount;
 
-    private List<String> equipmentsList;
+    private String[] equipmentsList;
 
     private List<LocalDate> bookedDates;
 

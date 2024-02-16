@@ -10,7 +10,7 @@ import uz.example.oasisuz.entity.Attachment;
 import uz.example.oasisuz.entity.Cottage;
 import uz.example.oasisuz.repository.AttachmentRepository;
 
-import java.io.FileInputStream;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
@@ -22,7 +22,6 @@ public class AttachmentService {
     private final AttachmentRepository attachmentRepository;
     private final CottageService cottageService;
 
-    private final String filePath = "uploads";
 
     public void createAttachment(MultipartHttpServletRequest httpServletRequest, Integer cottageId, boolean mainAttachment) throws IOException {
 //        Optional<Product> productOptional = productRepository.findById(productId);

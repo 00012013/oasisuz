@@ -1,11 +1,15 @@
 package uz.example.oasisuz.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.Banner;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.example.oasisuz.dto.BannerDTO;
 import uz.example.oasisuz.dto.CottageDTO;
+import uz.example.oasisuz.dto.CottageListDTO;
+import uz.example.oasisuz.dto.FilterDTO;
+import uz.example.oasisuz.entity.Cottage;
 import uz.example.oasisuz.service.CottageService;
 
 import java.util.List;
@@ -19,17 +23,36 @@ public class CottageController {
 
     @GetMapping("get-all")
     public List<CottageDTO> getAllCottages() {
-        return  cottageService.getAllCottages();
+        return cottageService.getAllCottages();
     }
 
     @GetMapping("get-banner")
     public ResponseEntity<List<BannerDTO>> getBannerCottages() {
-        return  ResponseEntity.ok(cottageService.getBannerCottages());
+        return ResponseEntity.ok(cottageService.getBannerCottages());
     }
 
     @PostMapping("add/{userId}")
-    public CottageDTO addCottage(@RequestBody CottageDTO cottageDTO, @PathVariable() Integer userId) {
+    public CottageDTO addCottage(@RequestBody CottageDTO cottageDTO, @PathVariable Integer userId) {
         return cottageService.addCottage(cottageDTO, userId);
     }
 
+    @GetMapping("search/{name}")
+    public List<String> searchByName(@PathVariable String name) {
+        return cottageService.searchByName(name);
+    }
+
+    @PostMapping("get/cottage-list")
+    public List<CottageDTO> getCottagesById(@RequestBody CottageListDTO cottageListDTO) {
+        return cottageService.getCottagesById(cottageListDTO);
+    }
+
+    @GetMapping("get/{id}")
+    public CottageDTO getCottageById(@PathVariable Integer id) {
+        return cottageService.getCottageById(id);
+    }
+
+    @PostMapping("filter")
+    public List<CottageDTO> getCottageByFilter(@RequestBody FilterDTO filterDTO) {
+        return cottageService.getCottageByFilter(filterDTO);
+    }
 }

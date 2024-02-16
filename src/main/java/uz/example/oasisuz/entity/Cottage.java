@@ -12,7 +12,6 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class Cottage {
 
     @Id
@@ -35,8 +34,7 @@ public class Cottage {
 
     private Integer totalRoomCount;
 
-    @Enumerated(EnumType.STRING)
-    private List<Equipments> equipmentsList;
+    private String[] equipmentsList;
 
     @ElementCollection
     private List<LocalDate> bookedDates;
