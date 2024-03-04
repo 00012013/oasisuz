@@ -2,6 +2,8 @@ package uz.example.oasisuz.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.Converters;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.example.oasisuz.dto.BannerDTO;
@@ -11,10 +13,9 @@ import uz.example.oasisuz.dto.FilterDTO;
 import uz.example.oasisuz.entity.Cottage;
 import uz.example.oasisuz.entity.enums.Equipments;
 import uz.example.oasisuz.exception.CustomException;
-import uz.example.oasisuz.mapper.BannerMapper;
-import uz.example.oasisuz.mapper.CottageMapper;
 import uz.example.oasisuz.repository.CottageRepository;
 
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -25,17 +26,16 @@ import static java.util.stream.Collectors.toList;
 public class CottageService {
     private final CottageRepository cottageRepository;
     private final UsersService usersService;
-    private final CottageMapper cottageMapper;
-    private final BannerMapper bannerMapper;
+    private final ModelMapper modelMapper;
 
     public List<CottageDTO> getAllCottages() {
         List<Cottage> cottageList = cottageRepository.findAll();
-        return cottageList.stream().map(cottageMapper::toCottageDto).toList();
+        return cottageList.stream().map(cottage -> modelMapper.map(cottage,CottageDTO.class)).toList();
     }
 
     public List<BannerDTO> getBannerCottages() {
         List<Cottage> fistThree = cottageRepository.getFistThree();
-        return fistThree.stream().map(bannerMapper::cottageToBannerDto).toList();
+        return fistThree.stream().map(cottage -> modelMapper.map(cottage,BannerDTO.class)).toList();
     }
 
     public CottageDTO addCottage(CottageDTO cottageDTO, Integer userId) {
@@ -58,7 +58,7 @@ public class CottageService {
 //        cottage.setUsers(user);
 
         Cottage save = cottageRepository.save(cottage);
-        return cottageMapper.toCottageDto(save);
+        return modelMapper.map(save, CottageDTO.class);
     }
 
     private List<Equipments> getEquipmentsEnumList(List<String> equipmentsList) {
@@ -75,7 +75,7 @@ public class CottageService {
     public CottageDTO getCottageById(Integer cottageId) {
 //        log.trace("get Cottage by Id controller");
         Cottage cottage = getCottage(cottageId);
-        return cottageMapper.toCottageDto(cottage);
+        return modelMapper.map(cottage,CottageDTO.class);
     }
 
     public void saveMainAttachmentId(Cottage cottage) {
@@ -90,13 +90,17 @@ public class CottageService {
 
         List<Cottage> cottageList = cottageRepository.findAllById(cottageListDTO.getCottageList());
 
-        return cottageList.stream().map(cottageMapper::toCottageDto).collect(toList());
+        return cottageList.stream().map(cottage -> modelMapper.map(cottage,CottageDTO.class)).collect(toList());
     }
 
     public List<CottageDTO> getCottageByFilter(FilterDTO filterDTO) {
 
+        if(filterDTO.getEquipmentList().length == 0){
+            filterDTO.setEquipmentList(null);
+        }
+
         List<Cottage> cottageList = cottageRepository.filterCottage(filterDTO.getEquipmentList(), filterDTO.getSortBy(), filterDTO.getMaxPrice(), filterDTO.getMinPrice(), filterDTO.getName());
 
-        return  cottageList.stream().map(cottageMapper::toCottageDto).collect(toList());
+        return  cottageList.stream().map(cottage -> modelMapper.map(cottage,CottageDTO.class)).collect(toList());
     }
 }
