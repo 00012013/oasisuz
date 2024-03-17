@@ -1,5 +1,6 @@
 package uz.example.oasisuz.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -7,13 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import uz.example.oasisuz.dto.TokenDto;
-import uz.example.oasisuz.dto.UserDto;
-import uz.example.oasisuz.dto.UserLoginDto;
-import uz.example.oasisuz.dto.UserLoginResponse;
+import org.springframework.web.client.RestTemplate;
+import uz.example.oasisuz.dto.*;
 import uz.example.oasisuz.entity.Role;
 import uz.example.oasisuz.entity.Users;
 import uz.example.oasisuz.entity.enums.RoleEnum;
+import uz.example.oasisuz.exception.CustomException;
 import uz.example.oasisuz.repository.RoleRepository;
 import uz.example.oasisuz.repository.UsersRepository;
 import uz.example.oasisuz.util.JwtProvider;
@@ -21,6 +21,7 @@ import uz.example.oasisuz.util.JwtProvider;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,10 +38,12 @@ public class UsersService {
 
     public Users register(UserDto userDto) {
         boolean existsByEmail = usersRepository.existsByEmail(userDto.getEmail());
-//        if (existsByEmail) {
-//            throw new RecordAlreadyExistsException(MessageFormat.format("User {0} already exist", userDto.getEmail()));
-//        }
-
+        if (existsByEmail) {
+            throw new CustomException(MessageFormat.format("User {0} already exist", userDto.getEmail()), HttpStatus.BAD_REQUEST);
+        }
+        if (userDto.getEmail() == null) {
+            throw new CustomException("Email must be filled", HttpStatus.BAD_REQUEST);
+        }
         List<Role> roleList = roleRepository.findAllByRoleEnumIn(List.of(RoleEnum.USER));
         Users user = Users.builder()
                 .fullName(userDto.getFullName())
@@ -78,5 +81,35 @@ public class UsersService {
             }
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    }
+
+    public UserLoginResponse authenticateWithGoogle(String idToken) {
+        String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken.substring(7);
+        RestTemplate restTemplate = new RestTemplate();
+        GoogleTokenInfo tokenInfo = restTemplate.getForObject(url, GoogleTokenInfo.class);
+
+        if (tokenInfo != null && tokenInfo.getEmail() != null) {
+            Optional<Users> byEmail = usersRepository.findByEmail(tokenInfo.getEmail());
+
+            if (byEmail.isEmpty()) {
+                List<Role> roleList = roleRepository.findAllByRoleEnumIn(List.of(RoleEnum.USER));
+
+                Users user = Users.builder()
+                        .email(tokenInfo.getEmail())
+                        .fullName(tokenInfo.getName())
+                        .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                        .roles(roleList).build();
+                Users save = usersRepository.save(user);
+                String token = jwtProvider.generateToken(tokenInfo.getEmail());
+                String refreshToken = jwtProvider.generateRefreshToken(tokenInfo.getEmail());
+                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, save.getFullName(), save.getId());
+            } else {
+                String token = jwtProvider.generateToken(tokenInfo.getEmail());
+                String refreshToken = jwtProvider.generateRefreshToken(tokenInfo.getEmail());
+                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, tokenInfo.getName(), byEmail.get().getId());
+            }
+        } else {
+            throw new BadCredentialsException("Failed to login or sing up!");
+        }
     }
 }

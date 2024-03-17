@@ -11,6 +11,18 @@ spring:
     multipart:
       max-file-size: 12MB
       max-request-size: 12MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 1039525615896-dkl7i81jco1hb1km44sg46oevfjvb42p.apps.googleusercontent.com
+            scope:
+              - profile
+              - email
+
+
+
 
 logging:
   level:

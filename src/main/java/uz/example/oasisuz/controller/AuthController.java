@@ -1,16 +1,17 @@
 package uz.example.oasisuz.controller;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import uz.example.oasisuz.dto.TokenDto;
 import uz.example.oasisuz.dto.UserDto;
 import uz.example.oasisuz.dto.UserLoginDto;
@@ -24,6 +25,9 @@ import uz.example.oasisuz.service.UsersService;
 @Validated
 public class AuthController {
     private final UsersService userService;
+    private final RestTemplate restTemplate;
+    private final GoogleIdTokenVerifier googleIdTokenVerifier;
+
 
     @PostMapping("/register")
     @Operation(description = "Register User")
@@ -45,4 +49,8 @@ public class AuthController {
         return userService.getTokens(tokenDto);
     }
 
+    @GetMapping("/auth/google")
+    public UserLoginResponse authenticateGoogleUser(@RequestHeader(value = "Authorization") String idToken) {
+       return userService.authenticateWithGoogle(idToken);
+    }
 }
