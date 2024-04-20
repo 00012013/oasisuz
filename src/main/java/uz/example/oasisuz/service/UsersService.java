@@ -67,7 +67,7 @@ public class UsersService {
         }
         String token = jwtProvider.generateToken(user.getEmail());
         String refreshToken = jwtProvider.generateRefreshToken(user.getEmail());
-        return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, user.getFullName(), user.getId());
+        return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, user.getFullName(), user.getId(), user.getRoles().toString());
     }
 
     public HttpEntity<?> getTokens(TokenDto tokenDto) {
@@ -102,11 +102,11 @@ public class UsersService {
                 Users save = usersRepository.save(user);
                 String token = jwtProvider.generateToken(tokenInfo.getEmail());
                 String refreshToken = jwtProvider.generateRefreshToken(tokenInfo.getEmail());
-                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, save.getFullName(), save.getId());
+                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, save.getFullName(), save.getId(), save.getRoles().toString());
             } else {
                 String token = jwtProvider.generateToken(tokenInfo.getEmail());
                 String refreshToken = jwtProvider.generateRefreshToken(tokenInfo.getEmail());
-                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, tokenInfo.getName(), byEmail.get().getId());
+                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, tokenInfo.getName(), byEmail.get().getId(), byEmail.get().getRoles().toString());
             }
         } else {
             throw new BadCredentialsException("Failed to login or sing up!");

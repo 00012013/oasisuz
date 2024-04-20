@@ -4,10 +4,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.Parameter;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uz.example.oasisuz.service.AttachmentService;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,7 +28,11 @@ public class AttachmentController {
 
     @PostMapping("/create-main-attachment/{cottageId}")
     public void createMainAttachment(@PathVariable Integer cottageId, MultipartHttpServletRequest httpServletRequest) throws IOException {
-
         attachmentService.createMainAttachment(httpServletRequest, cottageId);
     }
+    @PostMapping("/upload/{id}")
+    public void uploadFiles(@RequestParam("files") List<MultipartFile> files, @PathVariable Integer id) {
+        attachmentService.uploadFiles(files, id);
+    }
+
 }

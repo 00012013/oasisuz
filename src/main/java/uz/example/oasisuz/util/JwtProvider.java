@@ -13,8 +13,8 @@ import java.util.Date;
 public class JwtProvider {
 
     private static final String secretKey = "oasisSecretKey";
-    private static final int expiredTime = 1000 * 60 * 10;// 10 minute
-    private static final int expiredTimeForRefresh = 1000 * 60 * 30;// 30 minutes
+    private static final int expiredTime = 1000 * 60 * 60 * 24 * 7;// 3 days
+    private static final int expiredTimeForRefresh = 1000 * 60 * 30;
 
     public String generateToken(String email){
         return Jwts

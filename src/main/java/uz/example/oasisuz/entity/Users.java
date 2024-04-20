@@ -33,6 +33,9 @@ public class Users implements UserDetails {
 
     private Integer noAdds;
 
+    @ManyToOne
+    private ChatRoom chatRoom;
+
     @OneToMany(mappedBy = "users")
     private List<Cottage> cottageList;
 

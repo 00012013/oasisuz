@@ -3,6 +3,7 @@ package uz.example.oasisuz.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.example.oasisuz.entity.enums.Equipments;
+import uz.example.oasisuz.entity.enums.Status;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,6 +36,9 @@ public class Cottage {
     private Integer totalRoomCount;
 
     private String[] equipmentsList;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @ElementCollection
     private List<LocalDate> bookedDates;

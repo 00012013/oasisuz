@@ -25,9 +25,6 @@ import uz.example.oasisuz.service.UsersService;
 @Validated
 public class AuthController {
     private final UsersService userService;
-    private final RestTemplate restTemplate;
-    private final GoogleIdTokenVerifier googleIdTokenVerifier;
-
 
     @PostMapping("/register")
     @Operation(description = "Register User")

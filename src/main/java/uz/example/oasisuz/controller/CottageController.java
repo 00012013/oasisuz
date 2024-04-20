@@ -3,13 +3,13 @@ package uz.example.oasisuz.controller;
 import lombok.RequiredArgsConstructor;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.example.oasisuz.dto.BannerDTO;
 import uz.example.oasisuz.dto.CottageDTO;
 import uz.example.oasisuz.dto.CottageListDTO;
 import uz.example.oasisuz.dto.FilterDTO;
-import uz.example.oasisuz.entity.Cottage;
 import uz.example.oasisuz.service.CottageService;
 
 import java.util.List;
@@ -36,8 +36,8 @@ public class CottageController {
         return cottageService.addCottage(cottageDTO, userId);
     }
 
-    @GetMapping("search/{name}")
-    public List<String> searchByName(@PathVariable String name) {
+    @GetMapping(value = "search/{name}")
+    public List<CottageDTO> searchByName(@PathVariable String name) {
         return cottageService.searchByName(name);
     }
 

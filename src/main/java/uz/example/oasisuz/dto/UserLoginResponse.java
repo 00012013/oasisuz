@@ -13,4 +13,6 @@ public class UserLoginResponse {
     private String fullName;
 
     private Integer userId;
+
+    private String role;
 }

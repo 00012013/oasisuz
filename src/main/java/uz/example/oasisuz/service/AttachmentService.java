@@ -2,19 +2,20 @@ package uz.example.oasisuz.service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uz.example.oasisuz.entity.Attachment;
 import uz.example.oasisuz.entity.Cottage;
+import uz.example.oasisuz.exception.CustomException;
 import uz.example.oasisuz.repository.AttachmentRepository;
 
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -24,12 +25,9 @@ public class AttachmentService {
 
 
     public void createAttachment(MultipartHttpServletRequest httpServletRequest, Integer cottageId, boolean mainAttachment) throws IOException {
-//        Optional<Product> productOptional = productRepository.findById(productId);
-//
         Cottage cottage = cottageService.getCottage(cottageId);
         if (cottage == null) {
-            // to do
-            return;
+            throw new CustomException(String.format("Cottage not found, id: %s", cottageId), HttpStatus.BAD_REQUEST);
         }
 
         Iterator<String> fileNames = httpServletRequest.getFileNames();
@@ -48,11 +46,8 @@ public class AttachmentService {
 
             attachment.setName(name);
 
-//            Path path = Paths.get(filePath + "/" + name);
-//            Files.copy(picture.getInputStream(), path);
-
             Attachment savedAttachment = attachmentRepository.save(attachment);
-            if(mainAttachment){
+            if (mainAttachment) {
                 cottage.setMainAttachment(savedAttachment);
                 cottageService.saveMainAttachmentId(cottage);
             }
@@ -69,7 +64,6 @@ public class AttachmentService {
 
             response.setContentType(attachment.getContentType());
 
-//            FileInputStream fileInputStream = new FileInputStream(filePath + "/" + attachment.getName());
             FileCopyUtils.copy(attachment.getMainContent(), response.getOutputStream());
 
         }
@@ -77,5 +71,30 @@ public class AttachmentService {
 
     public void createMainAttachment(MultipartHttpServletRequest httpServletRequest, Integer cottageId) throws IOException {
         createAttachment(httpServletRequest, cottageId, true);
+    }
+
+    @SneakyThrows
+    public void uploadFiles(List<MultipartFile> files, Integer id) {
+        Cottage cottage = cottageService.getCottage(id);
+        if (cottage == null) {
+            throw new CustomException(String.format("Cottage not found, id: %s", id), HttpStatus.BAD_REQUEST);
+        }
+        List<Attachment> attachmentList = new ArrayList<>();
+        for (MultipartFile file : files) {
+            Attachment attachment = Attachment.builder()
+                    .contentType(file.getContentType())
+                    .mainContent(file.getBytes())
+                    .cottage(cottage)
+                    .fileOriginalName(file.getOriginalFilename())
+                    .build();
+            String[] split = attachment.getFileOriginalName().split("\\.");
+
+            String name = UUID.randomUUID() + split[split.length - 1];
+
+            attachment.setName(name);
+
+            attachmentList.add(attachment);
+        }
+        attachmentRepository.saveAll(attachmentList);
     }
 }
