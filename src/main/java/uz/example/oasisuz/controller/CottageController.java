@@ -55,4 +55,14 @@ public class CottageController {
     public List<CottageDTO> getCottageByFilter(@RequestBody FilterDTO filterDTO) {
         return cottageService.getCottageByFilter(filterDTO);
     }
+
+    @GetMapping("get-pending/{userId}")
+    public List<CottageDTO> getPendingCottages(@PathVariable Integer userId){
+        return cottageService.getPendingCottages(userId);
+    }
+
+    @PostMapping("change-status/{userId}")
+    public void changeCottageStatus(@PathVariable Integer userId, @RequestBody CottageDTO cottageDTO){
+        cottageService.changeCottageStatus(userId, cottageDTO);
+    }
 }

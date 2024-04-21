@@ -2,6 +2,7 @@ package uz.example.oasisuz.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import uz.example.oasisuz.entity.enums.RoleEnum;
 
 @Data
 @AllArgsConstructor
@@ -14,5 +15,5 @@ public class UserLoginResponse {
 
     private Integer userId;
 
-    private String role;
+    private RoleEnum role;
 }

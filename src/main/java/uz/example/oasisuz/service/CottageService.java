@@ -2,8 +2,6 @@ package uz.example.oasisuz.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.C;
-import org.modelmapper.Converters;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,11 +12,11 @@ import uz.example.oasisuz.dto.FilterDTO;
 import uz.example.oasisuz.entity.Cottage;
 import uz.example.oasisuz.entity.Users;
 import uz.example.oasisuz.entity.enums.Equipments;
+import uz.example.oasisuz.entity.enums.RoleEnum;
 import uz.example.oasisuz.entity.enums.Status;
 import uz.example.oasisuz.exception.CustomException;
 import uz.example.oasisuz.repository.CottageRepository;
 
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -32,7 +30,7 @@ public class CottageService {
     private final ModelMapper modelMapper;
 
     public List<CottageDTO> getAllCottages() {
-        List<Cottage> cottageList = cottageRepository.findAll();
+        List<Cottage> cottageList = cottageRepository.findAllByStatus(Status.APPROVED);
         return cottageList.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).toList();
     }
 
@@ -43,9 +41,6 @@ public class CottageService {
 
     public CottageDTO addCottage(CottageDTO cottageDTO, Integer userId) {
         Users user = usersService.getUser(userId);
-        if (user == null) {
-            throw new CustomException(String.format("User not found, id:{%s} ", userId), HttpStatus.BAD_REQUEST);
-        }
 
         Cottage cottage = new Cottage();
         cottage.setName(cottageDTO.getName());
@@ -76,7 +71,6 @@ public class CottageService {
     }
 
     public CottageDTO getCottageById(Integer cottageId) {
-//        log.trace("get Cottage by Id controller");
         Cottage cottage = getCottage(cottageId);
         return modelMapper.map(cottage, CottageDTO.class);
     }
@@ -107,5 +101,31 @@ public class CottageService {
         List<Cottage> cottageList = cottageRepository.filterCottage(filterDTO.getEquipmentList(), filterDTO.getSortBy(), filterDTO.getMaxPrice(), filterDTO.getMinPrice(), filterDTO.getName());
 
         return cottageList.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).collect(toList());
+    }
+
+    public List<CottageDTO> getPendingCottages(Integer userId) {
+
+        Users user = usersService.getUser(userId);
+
+        if (user.getRoles().get(0).getRoleEnum() != RoleEnum.ADMIN) {
+            throw new CustomException("", HttpStatus.FORBIDDEN);
+        }
+
+        List<Cottage> allByStatus = cottageRepository.findAllByStatus(Status.PENDING);
+
+        return allByStatus.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).collect(toList());
+    }
+
+    public void changeCottageStatus(Integer userId, CottageDTO cottageDTO) {
+        Users user = usersService.getUser(userId);
+
+        if (user.getRoles().get(0).getRoleEnum() != RoleEnum.ADMIN) {
+            throw new CustomException("", HttpStatus.FORBIDDEN);
+        }
+        Cottage cottage = getCottage(cottageDTO.getId());
+
+        cottage.setStatus(cottageDTO.getStatus());
+
+        cottageRepository.save(cottage);
     }
 }

@@ -1,7 +1,7 @@
 package uz.example.oasisuz.dto;
 
 import lombok.Data;
-
+import uz.example.oasisuz.entity.enums.Status;
 
 
 import java.time.LocalDate;
@@ -35,5 +35,7 @@ public class CottageDTO {
     private List<AttachmentDTO> attachmentsList;
 
     private AttachmentDTO mainAttachment;
+
+    private Status status;
 
 }

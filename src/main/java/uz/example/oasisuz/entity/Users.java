@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import uz.example.oasisuz.entity.enums.AuthType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +34,9 @@ public class Users implements UserDetails {
 
     private Integer noAdds;
 
+    @Enumerated(EnumType.STRING)
+    private AuthType authType;
+
     @ManyToOne
     private ChatRoom chatRoom;
 
@@ -42,6 +46,7 @@ public class Users implements UserDetails {
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Role> roles;
 
+    private String imgUrl;
     public Collection<? extends GrantedAuthority> getAuthorities() {
         ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();
         roles.forEach((role) -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleEnum())));

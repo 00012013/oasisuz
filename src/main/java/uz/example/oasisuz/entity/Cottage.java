@@ -1,8 +1,10 @@
 package uz.example.oasisuz.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import uz.example.oasisuz.entity.enums.Equipments;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import uz.example.oasisuz.entity.enums.Status;
 
 import java.time.LocalDate;
