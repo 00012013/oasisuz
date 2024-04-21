@@ -1,6 +1,7 @@
 package uz.example.oasisuz.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -12,16 +13,17 @@ import org.springframework.web.client.RestTemplate;
 import uz.example.oasisuz.dto.*;
 import uz.example.oasisuz.entity.Role;
 import uz.example.oasisuz.entity.Users;
+import uz.example.oasisuz.entity.enums.AuthType;
 import uz.example.oasisuz.entity.enums.RoleEnum;
 import uz.example.oasisuz.exception.CustomException;
 import uz.example.oasisuz.repository.RoleRepository;
 import uz.example.oasisuz.repository.UsersRepository;
 import uz.example.oasisuz.util.JwtProvider;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +33,11 @@ public class UsersService {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final JwtProvider jwtProvider;
+    private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
     public Users getUser(Integer userId) {
-        return usersRepository.findById(userId).orElse(null);
+        return usersRepository.findById(userId).orElseThrow(() ->
+                new CustomException(String.format("User not found, id:{%s} ", userId), HttpStatus.BAD_REQUEST));
     }
 
     public Users register(UserDto userDto) {
@@ -49,6 +53,7 @@ public class UsersService {
                 .fullName(userDto.getFullName())
                 .phoneNumber(userDto.getPhoneNumber())
                 .email(userDto.getEmail())
+                .authType(AuthType.BASIC)
                 .password(passwordEncoder.encode(userDto.getPassword()))
                 .roles(roleList)
                 .build();
@@ -67,7 +72,7 @@ public class UsersService {
         }
         String token = jwtProvider.generateToken(user.getEmail());
         String refreshToken = jwtProvider.generateRefreshToken(user.getEmail());
-        return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, user.getFullName(), user.getId(), user.getRoles().toString());
+        return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, user.getFullName(), user.getId(), user.getRoles().get(0).getRoleEnum());
     }
 
     public HttpEntity<?> getTokens(TokenDto tokenDto) {
@@ -83,33 +88,92 @@ public class UsersService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 
+    @Deprecated
     public UserLoginResponse authenticateWithGoogle(String idToken) {
+
         String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken.substring(7);
         RestTemplate restTemplate = new RestTemplate();
         GoogleTokenInfo tokenInfo = restTemplate.getForObject(url, GoogleTokenInfo.class);
 
         if (tokenInfo != null && tokenInfo.getEmail() != null) {
             Optional<Users> byEmail = usersRepository.findByEmail(tokenInfo.getEmail());
-
             if (byEmail.isEmpty()) {
                 List<Role> roleList = roleRepository.findAllByRoleEnumIn(List.of(RoleEnum.USER));
 
                 Users user = Users.builder()
                         .email(tokenInfo.getEmail())
                         .fullName(tokenInfo.getName())
+                        .authType(AuthType.GOOGLE)
                         .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                         .roles(roleList).build();
                 Users save = usersRepository.save(user);
                 String token = jwtProvider.generateToken(tokenInfo.getEmail());
                 String refreshToken = jwtProvider.generateRefreshToken(tokenInfo.getEmail());
-                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, save.getFullName(), save.getId(), save.getRoles().toString());
+                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, save.getFullName(), save.getId(), save.getRoles().get(0).getRoleEnum());
             } else {
+                Users users = byEmail.get();
+                if (!Objects.equals(users.getAuthType(), AuthType.GOOGLE)) {
+                    throw new CustomException(String.format("This username, %s, already exists! Please login without google!", users.getUsername()), HttpStatus.BAD_REQUEST);
+                }
                 String token = jwtProvider.generateToken(tokenInfo.getEmail());
                 String refreshToken = jwtProvider.generateRefreshToken(tokenInfo.getEmail());
-                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, tokenInfo.getName(), byEmail.get().getId(), byEmail.get().getRoles().toString());
+                return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, tokenInfo.getName(), users.getId(), users.getRoles().get(0).getRoleEnum());
             }
         } else {
             throw new BadCredentialsException("Failed to login or sing up!");
         }
+    }
+
+    public UserLoginResponse authenticateWithGoogle(IdTokenRequestDto idTokenRequestDto) {
+        GoogleIdToken googleIdToken = verifyIDToken(idTokenRequestDto.getTokenId());
+
+        if (googleIdToken == null) {
+            throw new IllegalArgumentException();
+        }
+
+        GoogleIdToken.Payload payload = googleIdToken.getPayload();
+
+        String email = payload.getEmail();
+        String firstName = (String) payload.get("given_name");
+
+        Optional<Users> optionalUser = usersRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            Users user = createUser(email, firstName, payload);
+            Users save = usersRepository.save(user);
+            String token = jwtProvider.generateToken(user.getEmail());
+            String refreshToken = jwtProvider.generateRefreshToken(email);
+            return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, firstName, save.getId(), save.getRoles().get(0).getRoleEnum());
+        } else {
+            Users users = optionalUser.get();
+            if (!Objects.equals(users.getAuthType(), AuthType.GOOGLE)) {
+                throw new CustomException(String.format("This username, %s, already exists! Please login without google!", users.getUsername()), HttpStatus.BAD_REQUEST);
+            }
+            String token = jwtProvider.generateToken(users.getEmail());
+            String refreshToken = jwtProvider.generateRefreshToken(users.getEmail());
+            return new UserLoginResponse("Bearer " + token, "Bearer " + refreshToken, firstName, users.getId(), users.getRoles().get(0).getRoleEnum());
+        }
+    }
+
+
+    private GoogleIdToken verifyIDToken(String idToken) {
+        try {
+            return GoogleIdToken.parse(googleIdTokenVerifier.getJsonFactory(), idToken);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private Users createUser(String email, String firstName, GoogleIdToken.Payload payload) {
+        String lastName = (String) payload.get("family_name");
+        String pictureUrl = (String) payload.get("picture");
+        List<Role> roleList = roleRepository.findAllByRoleEnumIn(List.of(RoleEnum.USER));
+
+        return Users.builder()
+                .email(email)
+                .fullName(firstName + ' ' + lastName)
+                .authType(AuthType.GOOGLE)
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .imgUrl(pictureUrl)
+                .roles(roleList).build();
     }
 }
