@@ -28,11 +28,11 @@ public class SecurityConfiguration {
             "/api/auth/**",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "api/cottage/get-all",
+            "api/cottage/get-all/**",
             "api/cottage/get-banner",
             "api/cottage/search/**",
             "api/cottage/get/**",
-            "api/cottage/filter/**",
+            "api/cottage/filter",
             "api/cottage-attachment/get-file/**"
     };
 

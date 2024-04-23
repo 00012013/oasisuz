@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uz.example.oasisuz.entity.Attachment;
 import uz.example.oasisuz.entity.Cottage;
+import uz.example.oasisuz.entity.Users;
 import uz.example.oasisuz.exception.CustomException;
 import uz.example.oasisuz.repository.AttachmentRepository;
 
@@ -22,7 +23,7 @@ import java.util.*;
 public class AttachmentService {
     private final AttachmentRepository attachmentRepository;
     private final CottageService cottageService;
-
+    private final UsersService usersService;
 
     public void createAttachment(MultipartHttpServletRequest httpServletRequest, Integer cottageId, boolean mainAttachment) throws IOException {
         Cottage cottage = cottageService.getCottage(cottageId);
@@ -48,7 +49,7 @@ public class AttachmentService {
 
             Attachment savedAttachment = attachmentRepository.save(attachment);
             if (mainAttachment) {
-                cottage.setMainAttachment(savedAttachment);
+                cottage.setMainAttachmentId(savedAttachment.getId());
                 cottageService.saveMainAttachmentId(cottage);
             }
         }
@@ -96,5 +97,9 @@ public class AttachmentService {
             attachmentList.add(attachment);
         }
         attachmentRepository.saveAll(attachmentList);
+    }
+
+    public void deleteAttachments(List<Integer> attachmentsIds) {
+        attachmentRepository.deleteAllById(attachmentsIds);
     }
 }

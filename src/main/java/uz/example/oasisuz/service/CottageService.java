@@ -3,6 +3,8 @@ package uz.example.oasisuz.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.example.oasisuz.dto.BannerDTO;
@@ -29,8 +31,9 @@ public class CottageService {
     private final UsersService usersService;
     private final ModelMapper modelMapper;
 
-    public List<CottageDTO> getAllCottages() {
-        List<Cottage> cottageList = cottageRepository.findAllByStatus(Status.APPROVED);
+    public List<CottageDTO> getAllCottages(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Cottage> cottageList = cottageRepository.findAllByStatusOrderById(Status.APPROVED, pageable);
         return cottageList.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).toList();
     }
 
@@ -85,7 +88,7 @@ public class CottageService {
         return cottageList.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).toList();
     }
 
-    public List<CottageDTO> getCottagesById(CottageListDTO cottageListDTO) {
+    public List<CottageDTO> getCottagesByIds(CottageListDTO cottageListDTO) {
 
         List<Cottage> cottageList = cottageRepository.findAllById(cottageListDTO.getCottageList());
 
@@ -103,7 +106,7 @@ public class CottageService {
         return cottageList.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).collect(toList());
     }
 
-    public List<CottageDTO> getPendingCottages(Integer userId) {
+    public List<CottageDTO> getPendingCottages(Integer userId, int page, int size) {
 
         Users user = usersService.getUser(userId);
 
@@ -111,7 +114,9 @@ public class CottageService {
             throw new CustomException("", HttpStatus.FORBIDDEN);
         }
 
-        List<Cottage> allByStatus = cottageRepository.findAllByStatus(Status.PENDING);
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<Cottage> allByStatus = cottageRepository.findAllByStatusOrderById(Status.PENDING, pageable);
 
         return allByStatus.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).collect(toList());
     }
@@ -125,6 +130,36 @@ public class CottageService {
         Cottage cottage = getCottage(cottageDTO.getId());
 
         cottage.setStatus(cottageDTO.getStatus());
+
+        cottageRepository.save(cottage);
+    }
+
+    public List<CottageDTO> getUserCottages(Integer userId) {
+        Users user = usersService.getUser(userId);
+
+        List<Cottage> cottageList = cottageRepository.findAllByUsersOrderById(user);
+
+        return cottageList.stream().map(cottage -> modelMapper.map(cottage, CottageDTO.class)).toList();
+    }
+
+    public void updateCottage(CottageDTO cottageDTO, Integer userId) {
+        Users user = usersService.getUser(userId);
+
+        Cottage cottage = getCottage(cottageDTO.getId());
+
+        if (!user.getId().equals(cottage.getUsers().getId())) {
+            throw new CustomException("Failed to update. User id mismatch!", HttpStatus.BAD_REQUEST);
+        }
+
+        cottage.setName(cottageDTO.getName() != null ? cottageDTO.getName() : cottage.getName());
+        cottage.setDescription(cottageDTO.getDescription() != null ? cottageDTO.getDescription() : cottage.getDescription());
+        cottage.setWeekDaysPrice(cottageDTO.getWeekDaysPrice() != null ? cottageDTO.getWeekDaysPrice() : cottage.getWeekDaysPrice());
+        cottage.setWeekendDaysPrice(cottageDTO.getWeekendDaysPrice() != null ? cottageDTO.getWeekendDaysPrice() : cottage.getWeekendDaysPrice());
+        cottage.setTotalRoomCount(cottageDTO.getTotalRoomCount() != null ? cottageDTO.getTotalRoomCount() : cottage.getTotalRoomCount());
+        cottage.setLatitude(cottageDTO.getLatitude() != null ? cottageDTO.getLatitude() : cottage.getLatitude());
+        cottage.setLongitude(cottageDTO.getLongitude() != null ? cottageDTO.getLongitude() : cottage.getLongitude());
+        cottage.setEquipmentsList(cottageDTO.getEquipmentsList() != null ? cottageDTO.getEquipmentsList() : cottage.getEquipmentsList());
+
 
         cottageRepository.save(cottage);
     }

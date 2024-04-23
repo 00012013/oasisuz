@@ -1,10 +1,13 @@
 package uz.example.oasisuz.repository;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uz.example.oasisuz.entity.Cottage;
+import uz.example.oasisuz.entity.Users;
 import uz.example.oasisuz.entity.enums.Status;
 
 import java.util.List;
@@ -20,5 +23,7 @@ public interface CottageRepository extends JpaRepository<Cottage,Integer> {
     @Query(value = "SELECT * FROM filter(:equipments,:sortBy, :maxPrice, :minPrice, :name)", nativeQuery = true)
     List<Cottage> filterCottage(@Param("equipments") String[] equipments, @Param("sortBy") String sortBy,@Param("maxPrice") double maxPrice, @Param("minPrice") double minPrice, @Param("name") String name);
 
-    List<Cottage> findAllByStatus(Status status);
+    List<Cottage> findAllByStatusOrderById(Status status, Pageable pageable);
+
+    List<Cottage> findAllByUsersOrderById(Users users);
 }

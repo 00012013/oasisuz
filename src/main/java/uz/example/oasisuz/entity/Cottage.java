@@ -1,10 +1,7 @@
 package uz.example.oasisuz.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import uz.example.oasisuz.entity.enums.Status;
 
 import java.time.LocalDate;
@@ -13,6 +10,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Cottage {
@@ -48,9 +46,10 @@ public class Cottage {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cottage", fetch = FetchType.LAZY)
     private List<Attachment> attachmentsList;
 
-    @OneToOne
-    private Attachment mainAttachment;
+    private Integer mainAttachmentId;
 
     @ManyToOne()
     private Users users;
+
+    private String contacts;
 }

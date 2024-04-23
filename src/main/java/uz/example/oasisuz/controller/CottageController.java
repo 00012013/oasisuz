@@ -21,9 +21,9 @@ public class CottageController {
 
     private final CottageService cottageService;
 
-    @GetMapping("get-all")
-    public List<CottageDTO> getAllCottages() {
-        return cottageService.getAllCottages();
+    @GetMapping("get-all/")
+    public List<CottageDTO> getAllCottages(@RequestParam(defaultValue = "1") int page,@RequestParam(defaultValue = "10") int size) {
+        return cottageService.getAllCottages(page, size);
     }
 
     @GetMapping("get-banner")
@@ -42,8 +42,8 @@ public class CottageController {
     }
 
     @PostMapping("get/cottage-list")
-    public List<CottageDTO> getCottagesById(@RequestBody CottageListDTO cottageListDTO) {
-        return cottageService.getCottagesById(cottageListDTO);
+    public List<CottageDTO> getCottagesByIds(@RequestBody CottageListDTO cottageListDTO) {
+        return cottageService.getCottagesByIds(cottageListDTO);
     }
 
     @GetMapping("get/{id}")
@@ -57,12 +57,23 @@ public class CottageController {
     }
 
     @GetMapping("get-pending/{userId}")
-    public List<CottageDTO> getPendingCottages(@PathVariable Integer userId){
-        return cottageService.getPendingCottages(userId);
+    public List<CottageDTO> getPendingCottages(@PathVariable Integer userId, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
+        return cottageService.getPendingCottages(userId, page, size);
     }
 
     @PostMapping("change-status/{userId}")
-    public void changeCottageStatus(@PathVariable Integer userId, @RequestBody CottageDTO cottageDTO){
+    public void changeCottageStatus(@PathVariable Integer userId, @RequestBody CottageDTO cottageDTO) {
         cottageService.changeCottageStatus(userId, cottageDTO);
     }
+
+    @GetMapping("get/user-cottages/{userId}")
+    public List<CottageDTO> getUserCottages(@PathVariable Integer userId){
+        return cottageService.getUserCottages(userId);
+    }
+
+    @PostMapping("update/{userId}")
+    public void updateCottage(@RequestBody CottageDTO cottageDTO, @PathVariable Integer userId){
+        cottageService.updateCottage(cottageDTO, userId);
+    }
+
 }

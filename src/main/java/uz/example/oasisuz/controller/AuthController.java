@@ -35,7 +35,7 @@ public class AuthController {
 
     @PostMapping("/token")
     @Operation(description = "Get Tokens to refresh access token")
-    public HttpEntity<?> getTokens(@Parameter(description = "Pass refresh token", required = true) @RequestBody TokenDto tokenDto) {
+    public HttpEntity<?> getTokens(@RequestBody TokenDto tokenDto) {
         return userService.getTokens(tokenDto);
     }
 
