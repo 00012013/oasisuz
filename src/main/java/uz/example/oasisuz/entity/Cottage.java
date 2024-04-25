@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import uz.example.oasisuz.entity.enums.Status;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class Cottage {
     private Status status;
 
     @ElementCollection
-    private List<LocalDate> bookedDates;
+    private List<Timestamp> bookedDates;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cottage", fetch = FetchType.LAZY)
     private List<Attachment> attachmentsList;

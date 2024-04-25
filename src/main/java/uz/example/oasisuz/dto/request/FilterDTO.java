@@ -1,4 +1,4 @@
-package uz.example.oasisuz.dto;
+package uz.example.oasisuz.dto.request;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;

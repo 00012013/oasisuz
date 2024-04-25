@@ -21,7 +21,7 @@ import java.util.List;
 public class Users implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String fullName;
@@ -37,8 +37,8 @@ public class Users implements UserDetails {
     @Enumerated(EnumType.STRING)
     private AuthType authType;
 
-    @ManyToOne
-    private ChatRoom chatRoom;
+    @ManyToMany(mappedBy = "users")
+    private List<ChatRoom> chatRoom;
 
     @OneToMany(mappedBy = "users")
     private List<Cottage> cottageList;

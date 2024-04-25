@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.example.oasisuz.dto.*;
+import uz.example.oasisuz.dto.request.IdTokenRequestDto;
+import uz.example.oasisuz.dto.request.UserLoginDto;
+import uz.example.oasisuz.dto.response.UserLoginResponse;
 import uz.example.oasisuz.entity.Users;
 import uz.example.oasisuz.service.UsersService;
 
@@ -21,8 +24,8 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(description = "Register User")
-    public HttpEntity<?> register(@Parameter(description = "User details", required = true) @RequestBody @Valid UserDto userDto) {
-        Users user = userService.register(userDto);
+    public HttpEntity<?> register(@Parameter(description = "User details", required = true) @RequestBody @Valid UsersDto usersDto) {
+        Users user = userService.register(usersDto);
         return ResponseEntity.ok().body(user);
     }
 

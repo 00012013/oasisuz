@@ -11,6 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import uz.example.oasisuz.dto.*;
+import uz.example.oasisuz.dto.request.GoogleTokenInfo;
+import uz.example.oasisuz.dto.request.IdTokenRequestDto;
+import uz.example.oasisuz.dto.request.UserLoginDto;
+import uz.example.oasisuz.dto.response.UserLoginResponse;
 import uz.example.oasisuz.entity.Role;
 import uz.example.oasisuz.entity.Users;
 import uz.example.oasisuz.entity.enums.AuthType;
@@ -21,7 +25,6 @@ import uz.example.oasisuz.repository.UsersRepository;
 import uz.example.oasisuz.util.JwtProvider;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -40,21 +43,21 @@ public class UsersService {
                 new CustomException(String.format("User not found, id:{%s} ", userId), HttpStatus.BAD_REQUEST));
     }
 
-    public Users register(UserDto userDto) {
-        boolean existsByEmail = usersRepository.existsByEmail(userDto.getEmail());
+    public Users register(UsersDto usersDto) {
+        boolean existsByEmail = usersRepository.existsByEmail(usersDto.getEmail());
         if (existsByEmail) {
-            throw new CustomException(MessageFormat.format("User {0} already exist", userDto.getEmail()), HttpStatus.BAD_REQUEST);
+            throw new CustomException(MessageFormat.format("User {0} already exist", usersDto.getEmail()), HttpStatus.BAD_REQUEST);
         }
-        if (userDto.getEmail() == null) {
+        if (usersDto.getEmail() == null) {
             throw new CustomException("Email must be filled", HttpStatus.BAD_REQUEST);
         }
         List<Role> roleList = roleRepository.findAllByRoleEnumIn(List.of(RoleEnum.USER));
         Users user = Users.builder()
-                .fullName(userDto.getFullName())
-                .phoneNumber(userDto.getPhoneNumber())
-                .email(userDto.getEmail())
+                .fullName(usersDto.getFullName())
+                .phoneNumber(usersDto.getPhoneNumber())
+                .email(usersDto.getEmail())
                 .authType(AuthType.BASIC)
-                .password(passwordEncoder.encode(userDto.getPassword()))
+                .password(passwordEncoder.encode(usersDto.getPassword()))
                 .roles(roleList)
                 .build();
         usersRepository.save(user);

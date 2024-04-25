@@ -1,6 +1,7 @@
-package uz.example.oasisuz.dto;
+package uz.example.oasisuz.dto.response;
 
 import lombok.Data;
+import uz.example.oasisuz.dto.AttachmentDTO;
 
 
 @Data

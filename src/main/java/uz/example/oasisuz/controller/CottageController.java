@@ -2,14 +2,12 @@ package uz.example.oasisuz.controller;
 
 import lombok.RequiredArgsConstructor;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uz.example.oasisuz.dto.BannerDTO;
+import uz.example.oasisuz.dto.response.BannerDTO;
 import uz.example.oasisuz.dto.CottageDTO;
-import uz.example.oasisuz.dto.CottageListDTO;
-import uz.example.oasisuz.dto.FilterDTO;
+import uz.example.oasisuz.dto.request.CottageListDTO;
+import uz.example.oasisuz.dto.request.FilterDTO;
 import uz.example.oasisuz.service.CottageService;
 
 import java.util.List;
